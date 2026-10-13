@@ -6,5 +6,6 @@
   },
   "editor.inlineSuggest.enabled": false,
   "editor.acceptSuggestionOnEnter": "off",
-  "editor.tabCompletion": "off"
+  "editor.tabCompletion": "off",
+  "python.terminal.useEnvFile": true
 }

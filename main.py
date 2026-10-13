@@ -12,8 +12,7 @@ YOU_COLOR = "\u001b[94m"
 ASSISTANT_COLOR = "\u001b[93m"
 RESET_COLOR = "\u001b[0m"
 
-CONVERSATION = list[dict[str, str]] = [{}]
-
+CONVERSATION: list[dict[str, str]] = []
 def get_tool(name: str) -> Tool:
     return SIMPLE_TOOL_REGISTRY.get_tool(name)
 
@@ -22,12 +21,6 @@ def get_tool(name: str) -> Tool:
 def command_prompt():
     return ""
 
-def create_conversation_entry(role: str, content: str) -> dict[str, str]:
-    return {
-        "role": role,
-        "content": content
-    }
-
 def call_llm(prompt: str):
     print(prompt)
     return
@@ -35,17 +28,22 @@ def call_llm(prompt: str):
 def get_user_input() -> dict[str, str]:
     return input(f"{YOU_COLOR}USER: {RESET_COLOR}")
 
-def add_to_conversation(input: str):
-    CONVERSATION.append(input)
+def add_to_conversation(role: str, content: str):
+    CONVERSATION.append(
+        {
+            "role": role,
+            "content": content
+        })
 
 def run_agent():
     #get user prompt
     while True:
-        user_input = get_user_input
-        add_to_conversation(input)
+        user_input = get_user_input()
+        add_to_conversation("user", content=user_input)
         # give user prompt to system , get response, save, action on response
         while True:
-            call_llm()
+            response = call_llm(user_input)
+            break
 
 
 if __name__ == "__main__":
