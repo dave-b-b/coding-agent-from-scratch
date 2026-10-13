@@ -1,5 +1,9 @@
 from tool_registry.simple_tool_registry import Tool, ToolRegistry
-openai_client = 
+from openai import OpenAI
+import os
+from dotenv import load_dotenv
+
+openai_client = OpenAI(api_key=os.environ[OPENAI_API_KEY])
 
 SIMPLE_TOOL_REGISTRY = ToolRegistry();
 
