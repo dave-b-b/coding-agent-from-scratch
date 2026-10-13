@@ -1,0 +1,11 @@
+{
+    "editor.quickSuggestions": {
+    // "other": false,
+    "comments": false,
+    "strings": false
+  },
+  "editor.inlineSuggest.enabled": false,
+  "editor.acceptSuggestionOnEnter": "off",
+  "editor.tabCompletion": "off",
+  "python.terminal.useEnvFile": true
+}
