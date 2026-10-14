@@ -47,7 +47,7 @@ def add_to_conversation(role: str, content: str):
         })
 
 def print_system_response(response: ChatCompletion):
-    print(f"{ASSISTANT_COLOR}{response.choices[0].message.content}{RESET_COLOR}")
+    print(f"{ASSISTANT_COLOR}AGENT: {response.choices[0].message.content}{RESET_COLOR}")
 
 def run_agent():
     #get user prompt
