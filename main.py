@@ -116,27 +116,35 @@ def run_agent():
         # give user prompt to system , get response, save, action on response
         while True:
             response = call_llm(MASTER_PROMPT + user_input)
-            response_content = response.choices[0].message.content
+            choice_length = len(response.choices) - 1
+            response_content = response.choices[choice_length].message.content
             response_json = json.loads(response_content)
             response_type = response_json["response_type"]
-
-            if response_type == "message":
-                print("message!")
-            elif response_type == "tool":
-                print("tool call!")
-
-            message_content = response_json["message_content"]
             tools = response_json["tools"]
             args = response_json["args"]
 
-            print_system_response(response)
+            add_to_conversation("system", response_content)
+
+            if response_type == "message":
+                print("message!")
+            elif response_type == "tool_call":
+                if tools == "read_file":
+                    tool: Tool = get_tool("read_file")
+                    print("Reading the  file...")
+                    output = tool.function(args["file_name"])
+                    text_prompt= "\nHere is the text from the file: " + output
+
+                    read_response = call_llm(text_prompt)
+                    add_to_conversation("user", text_prompt)
+                    print_system_response(read_response)
 
             # if contains_tool_calls(response):
             #     tool = get_tool(response)
             #     args = get_args(response)
             #     tool.function();
+            choice_length = len(response.choices) - 1
 
-            add_to_conversation(role="system", content=response)
+            add_to_conversation(role="system", content=response.choices[choice_length].message.content)
             break
 
 

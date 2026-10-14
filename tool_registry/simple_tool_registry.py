@@ -13,7 +13,7 @@ class ToolRegistry:
     def get_tool(self, name: str) -> Tool:
         return self.tools[name]
 
-    def add_tool(self, name: str, tool: Tool):
-        self.tools[name] = tool;
+    def add_tool(self, name: str, function: Callable[..., str]):
+        self.tools[name] = Tool(name, function)
         return self
 
