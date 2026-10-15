@@ -20,6 +20,9 @@ def read_file(file_name: str) -> str:
         content = file.read()
         return content
 
+def file_exists(file_name: str) -> bool:
+    return Path(file_name).is_file()
+    
 SIMPLE_TOOL_REGISTRY.add_tool("read_file", read_file)
 
 # Copied directly from https://www.themodernsoftware.dev
@@ -147,6 +150,11 @@ def run_agent():
                 if tools == "read_file":
                     tool: Tool = get_tool("read_file")
                     print("Reading the  file...")
+                    if not file_exists(args["file_name"]):
+                        file_path = Path(args["file_name"]).resolve()
+                        print(f"File does not exist at: {file_path}")
+                        break
+
                     output = tool.function(args["file_name"])
                     text_prompt= "\nHere is the text from the file: " + output
 
