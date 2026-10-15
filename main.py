@@ -29,7 +29,7 @@ def get_tool(name: str) -> Tool:
     return SIMPLE_TOOL_REGISTRY.get_tool(name)
 
 MASTER_PROMPT = """
-You are an agent. When a user asks you to perform an action, you should look to see whether there is a toolcall available and provide the tools and args for that tool call. 
+You are an helpful coding agent. When a user asks you to perform an action, you should look to see whether there is a toolcall available and provide the tools and args for that tool call. 
 Otherwise provide a normal text response.
 
 The possible tools are:
@@ -37,6 +37,9 @@ The possible tools are:
 
 You must load this into the reponse under the tools param and specify the arg under teh args param. 
 
+If the text does not require a tool, then do not load the tool.
+
+If you have read text from a file, then I want you to read the text as if it is a message from a user.
 """
 
 
@@ -47,8 +50,8 @@ def command_prompt():
 def call_llm(prompt: str) -> ChatCompletion:
     return openai_client.chat.completions.create(
         model="gpt-5-nano",
-        max_completion_tokens=2000,
-        reasoning_effort="medium",
+        max_completion_tokens=4000,
+        reasoning_effort="low",
         messages=CONVERSATION,
         response_format={
             "type": "json_schema",
@@ -100,7 +103,14 @@ def add_to_conversation(role: str, content: str):
         })
 
 def print_system_response(response: ChatCompletion):
-    print(f"{ASSISTANT_COLOR}AGENT: {response.choices[0].message.content}{RESET_COLOR}")
+    choice = response.choices[0]
+    if choice.finish_reason == "length" or not choice.message.content:
+        print("The model hit its output limit; try a larger token budget.")
+        return
+
+    original_content = response.choices[0].message.content
+    json_parsed = json.loads(original_content)
+    print(f"{ASSISTANT_COLOR}AGENT: {json_parsed["message_content"]}{RESET_COLOR}")
 
 def contains_tool_calls(response: ChatCompletion):
     content = response.choices[0].message.content
@@ -115,9 +125,12 @@ def run_agent():
         add_to_conversation("user", content=user_input)
         # give user prompt to system , get response, save, action on response
         while True:
-            response = call_llm(MASTER_PROMPT + user_input)
-            choice_length = len(response.choices) - 1
-            response_content = response.choices[choice_length].message.content
+            response = call_llm(MASTER_PROMPT)
+            choice = response.choices[0]
+            if choice.finish_reason == "length" or not choice.message.content:
+                print("The model hit its output limit; try a larger token budget.")
+                continue
+            response_content = response.choices[0].message.content
             response_json = json.loads(response_content)
             response_type = response_json["response_type"]
             tools = response_json["tools"]
@@ -126,25 +139,26 @@ def run_agent():
             add_to_conversation("system", response_content)
 
             if response_type == "message":
-                print("message!")
+                print_system_response(response)
             elif response_type == "tool_call":
                 if tools == "read_file":
                     tool: Tool = get_tool("read_file")
                     print("Reading the  file...")
                     output = tool.function(args["file_name"])
                     text_prompt= "\nHere is the text from the file: " + output
+                    print(text_prompt)
 
-                    read_response = call_llm(text_prompt)
                     add_to_conversation("user", text_prompt)
+
+                    read_response = call_llm(MASTER_PROMPT)
+                    add_to_conversation("system", text_prompt)
                     print_system_response(read_response)
 
             # if contains_tool_calls(response):
             #     tool = get_tool(response)
             #     args = get_args(response)
             #     tool.function();
-            choice_length = len(response.choices) - 1
-
-            add_to_conversation(role="system", content=response.choices[choice_length].message.content)
+            add_to_conversation(role="system", content=response.choices[0].message.content)
             break
 
 
