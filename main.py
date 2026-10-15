@@ -5,6 +5,7 @@ from collections.abc import Callable
 import json
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
@@ -13,8 +14,10 @@ SIMPLE_TOOL_REGISTRY = ToolRegistry();
 
 def read_file(file_name: str) -> str:
     with open(file_name, "r") as file:
+        location = Path(file.name).resolve()
+
+        print(f"Reading file at: {location}")
         content = file.read()
-        print(content)
         return content
 
 SIMPLE_TOOL_REGISTRY.add_tool("read_file", read_file)
@@ -146,7 +149,6 @@ def run_agent():
                     print("Reading the  file...")
                     output = tool.function(args["file_name"])
                     text_prompt= "\nHere is the text from the file: " + output
-                    print(text_prompt)
 
                     add_to_conversation("user", text_prompt)
 
