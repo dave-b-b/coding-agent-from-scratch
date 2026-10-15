@@ -6,9 +6,14 @@ class Tool:
 
 
 class ToolRegistry:
+
     def __init__(self):
         self.tools: dict[str, Tool] = {}
 
     def get_tool(self, name: str) -> Tool:
         return self.tools[name]
+
+    def add_tool(self, name: str, function: Callable[..., str]):
+        self.tools[name] = Tool(name, function)
+        return self
 
